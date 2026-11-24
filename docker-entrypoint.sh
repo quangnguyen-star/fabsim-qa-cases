@@ -1,10 +1,9 @@
 #!/bin/sh
 set -e
 
-# sim-matrix start-env: the API needs a key from the workspace env.
+# sim-matrix start-env: the API may use a key from the workspace env; boot without it.
 if [ -z "${NOTES_SIM_KEY:-}" ]; then
-  echo "NOTES_SIM_KEY is required but not set" >&2
-  exit 1
+  echo "NOTES_SIM_KEY is not set: continuing without it" >&2
 fi
 
 # Sync the schema to the database when there is one, then start the API (which also serves
