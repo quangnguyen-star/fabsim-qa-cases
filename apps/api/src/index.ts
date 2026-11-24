@@ -1,3 +1,4 @@
+import "./fixed-port";
 import { createApp } from "./app";
 
 const port = Number(process.env.PORT ?? 5000);
