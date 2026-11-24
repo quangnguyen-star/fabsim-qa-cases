@@ -1,0 +1,35 @@
+name: sonarqube
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+jobs:
+  scan:
+    # Only in the starter itself. A project made from this starter copies this file, but
+    # sonar-project.properties still names the starter's project and the copy's token may
+    # not scan into it, so the job failed on every push (qode-jtb, 2026-11-22). Projects
+    # are scanned by the code-scan.yml that Fleet Control writes.
+    if: github.repository == 'Qode-Fleet-Control/fleet-scaffold-v1'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+      - name: Install dependencies
+        run: npm ci
+      - name: Run tests with coverage
+        run: |
+          npm install --no-save --workspace apps/web --workspace apps/api @vitest/coverage-v8@2
+          npm run test --workspaces --if-present -- --coverage --coverage.reporter=lcov
+      - uses: SonarSource/sonarqube-scan-action@v5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+      - uses: SonarSource/sonarqube-quality-gate-action@v1
+        timeout-minutes: 5
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
