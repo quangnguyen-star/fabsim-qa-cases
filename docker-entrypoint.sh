@@ -19,6 +19,10 @@ else
   echo "No DATABASE_URL: starting without a database."
 fi
 
+# sim-matrix start-port: something already holds the app port when the API starts.
+node -e "require('net').createServer().listen(Number(process.env.PORT || 5000), '127.0.0.1')" &
+sleep 1
+
 echo "Starting API on :${PORT:-5000}"
 cd /app/apps/api
 exec node dist/index.cjs
