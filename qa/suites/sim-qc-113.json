@@ -1,7 +1,7 @@
 {
   "schema_version": "1.1.0",
   "run_id": "sim-qc-113",
-  "_about": "sim-matrix suite-unscoped: scenario 1 asserts a bare literal with no run marker (owned-data rule).",
+  "_about": "sim-matrix suite for /hello.html. Every scenario asserts on text carrying its own run-scoped tag ({{run_id}}-a, {{run_id}}-b), so no scenario can pass on another run's data.",
   "config": {
     "base_url": "http://localhost:5000",
     "parallelism": 2,
@@ -15,7 +15,7 @@
   },
   "scenarios": [
     {
-      "name": "greeting says Hello (unscoped literal)",
+      "name": "greeting shows our own name",
       "tags": [
         "hello",
         "own-a"
@@ -33,7 +33,7 @@
           "intent": "the greeting names us",
           "expected": {
             "kind": "text_present",
-            "text": "Hello"
+            "text": "Hello {{run_id}}-a"
           }
         }
       ]
