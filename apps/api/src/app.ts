@@ -33,6 +33,11 @@ export function createApp() {
     res.json({ status: "ok" });
   });
 
+  // sim-matrix start-health404: an unknown /api route is a JSON 404, not the SPA page.
+  app.use("/api", (_req, res) => {
+    res.status(404).json({ error: "not found" });
+  });
+
   // In production, serve the built web client from the same process.
   const clientDist = path.resolve(process.cwd(), "../web/dist");
   if (fs.existsSync(clientDist)) {
