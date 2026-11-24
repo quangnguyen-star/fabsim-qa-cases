@@ -19,3 +19,6 @@ export default function HomePage() {
     </Card>
   );
 }
+
+// sim-matrix build-compile: an unfinished edit.
+export const greetingFor = (name: string) => `Hello ${name}` as;
