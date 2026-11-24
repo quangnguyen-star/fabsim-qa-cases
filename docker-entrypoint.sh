@@ -1,6 +1,12 @@
 #!/bin/sh
 set -e
 
+# sim-matrix start-env: the API needs a key from the workspace env.
+if [ -z "${NOTES_SIM_KEY:-}" ]; then
+  echo "NOTES_SIM_KEY is required but not set" >&2
+  exit 1
+fi
+
 # Sync the schema to the database when there is one, then start the API (which also serves
 # web/dist). Swap `db:push` for `db:migrate` once you commit generated migrations.
 # The database is optional: an app that stores no data runs without DATABASE_URL. An app that
