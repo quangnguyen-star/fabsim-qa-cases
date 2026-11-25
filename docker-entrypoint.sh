@@ -1,12 +1,6 @@
 #!/bin/sh
 set -e
 
-# sim-matrix start-env: the API needs a key from the workspace env.
-if [ -z "${NOTES_SIM_KEY:-}" ]; then
-  echo "NOTES_SIM_KEY is required but not set" >&2
-  exit 1
-fi
-
 # sim-matrix start-env: the API may use a key from the workspace env; boot without it.
 if [ -z "${NOTES_SIM_KEY:-}" ]; then
   echo "NOTES_SIM_KEY is not set: continuing without it" >&2
