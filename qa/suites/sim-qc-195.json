@@ -1,0 +1,71 @@
+{
+  "schema_version": "1.1.0",
+  "run_id": "sim-qc-195",
+  "_about": "Epic QC-195 suite: the app boots without NOTES_SIM_KEY. Relative URLs only; run-scoped data via {{run_id}}.",
+  "config": {
+    "base_url": "http://localhost:5000",
+    "parallelism": 2,
+    "video": "fail",
+    "default_timeout_ms": 15000
+  },
+  "namespace": {
+    "run_id": "sim-qc-195",
+    "email": "qa+sim-qc-195@qode.gg",
+    "tag": "QA RUN sim-qc-195"
+  },
+  "scenarios": [
+    {
+      "name": "app boots and api health answers ok",
+      "tags": [
+        "api",
+        "own-c"
+      ],
+      "steps": [
+        {
+          "kind": "action",
+          "op": "api",
+          "intent": "GET /api/health",
+          "method": "GET",
+          "api_path": "/api/health",
+          "capture": {
+            "health": "$.status"
+          }
+        },
+        {
+          "kind": "assert",
+          "op": "assert",
+          "intent": "the API says ok",
+          "expected": {
+            "kind": "capture_equals",
+            "capture_name": "health",
+            "value": "ok"
+          }
+        }
+      ]
+    },
+    {
+      "name": "hello page renders without the key",
+      "tags": [
+        "hello",
+        "own-a"
+      ],
+      "steps": [
+        {
+          "kind": "action",
+          "op": "navigate",
+          "intent": "open the hello page with our name",
+          "url": "/hello.html?name={{run_id}}-a"
+        },
+        {
+          "kind": "assert",
+          "op": "assert",
+          "intent": "the greeting names us",
+          "expected": {
+            "kind": "text_present",
+            "text": "Hello {{run_id}}-a"
+          }
+        }
+      ]
+    }
+  ]
+}
