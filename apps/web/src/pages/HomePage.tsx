@@ -19,3 +19,5 @@ export default function HomePage() {
     </Card>
   );
 }
+
+export const greetingFor = (name: string) => `Hello ${name}`;
