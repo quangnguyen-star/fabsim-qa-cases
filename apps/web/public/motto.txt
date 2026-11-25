@@ -1,5 +1,1 @@
-
---- Changes ---
-
 motto from child one
-motto from child two
