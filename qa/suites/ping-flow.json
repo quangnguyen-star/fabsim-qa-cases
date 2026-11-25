@@ -19,9 +19,9 @@
       "tags": ["ping-flow"],
       "steps": [
         {"kind": "action", "op": "navigate", "intent": "open the ping-flow page",
-         "url": "/ping-flow.html"},
+         "url": "/ping-flow.html?run={{run_id}}"},
         {"kind": "assert", "op": "assert", "intent": "the page shows pong-flow",
-         "expected": {"kind": "text_present", "text": "pong-flow"}}
+         "expected": {"kind": "text_present", "text": "pong-flow {{run_id}}"}}
       ]
     }
   ]
