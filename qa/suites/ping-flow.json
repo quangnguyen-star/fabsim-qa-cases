@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.1.0",
+  "run_id": "ping-flow-84",
+  "_about": "Suite for the static /ping-flow.html page. Relative URLs only.",
+  "config": {
+    "base_url": "http://localhost:5000",
+    "parallelism": 1,
+    "video": "fail",
+    "default_timeout_ms": 15000
+  },
+  "namespace": {
+    "run_id": "ping-flow-84",
+    "email": "qa+ping-flow-84@qode.gg",
+    "tag": "QA RUN ping-flow-84"
+  },
+  "scenarios": [
+    {
+      "name": "ping-flow page shows pong-flow",
+      "tags": ["ping-flow"],
+      "steps": [
+        {"kind": "action", "op": "navigate", "intent": "open the ping-flow page",
+         "url": "/ping-flow.html"},
+        {"kind": "assert", "op": "assert", "intent": "the page shows pong-flow",
+         "expected": {"kind": "text_present", "text": "pong-flow"}}
+      ]
+    }
+  ]
+}
