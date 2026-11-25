@@ -1,0 +1,50 @@
+{
+  "schema_version": "1.1.0",
+  "run_id": "sim-dq-45",
+  "_about": "sim-matrix pass suite for /hello.html. Relative URLs only; every scenario asserts on text carrying its own run-scoped tag ({{run_id}}-a, {{run_id}}-b), so no scenario can pass on another's data.",
+  "config": {
+    "base_url": "http://localhost:5000",
+    "parallelism": 2,
+    "video": "fail",
+    "default_timeout_ms": 15000
+  },
+  "namespace": {
+    "run_id": "sim-dq-45",
+    "email": "qa+sim-dq-45@qode.gg",
+    "tag": "QA RUN sim-dq-45"
+  },
+  "scenarios": [
+    {
+      "name": "greeting shows our own name",
+      "tags": ["hello", "own-a"],
+      "steps": [
+        {"kind": "action", "op": "navigate", "intent": "open the hello page with our name",
+         "url": "/hello.html?name={{run_id}}-a"},
+        {"kind": "assert", "op": "assert", "intent": "the greeting names us",
+         "expected": {"kind": "text_present", "text": "Hello {{run_id}}-a"}}
+      ]
+    },
+    {
+      "name": "wave adds a line for our name",
+      "tags": ["hello", "own-b"],
+      "steps": [
+        {"kind": "action", "op": "navigate", "intent": "open the hello page with our name",
+         "url": "/hello.html?name={{run_id}}-b"},
+        {"kind": "action", "op": "click", "intent": "press Wave",
+         "target": {"by": "role", "role": "button", "name": "Wave"}},
+        {"kind": "assert", "op": "assert", "intent": "a wave line for our name appears",
+         "expected": {"kind": "text_present", "text": "Waved at {{run_id}}-b"}}
+      ]
+    },
+    {
+      "name": "api health answers ok",
+      "tags": ["api", "own-c"],
+      "steps": [
+        {"kind": "action", "op": "api", "intent": "GET /api/health",
+         "method": "GET", "api_path": "/api/health", "capture": {"health": "$.status"}},
+        {"kind": "assert", "op": "assert", "intent": "the API says ok",
+         "expected": {"kind": "capture_equals", "capture_name": "health", "value": "ok"}}
+      ]
+    }
+  ]
+}
