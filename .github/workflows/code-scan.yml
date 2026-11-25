@@ -1,0 +1,135 @@
+# fleet:code-scan v2
+# Written by Fleet Control (collector/delivery/code_scan.py). Scans this repo's code with
+# SonarQube on every push to main, and when Fleet asks for a scan before a deploy. The
+# results are what the workspace's Security tab shows.
+#
+# It never fails a build: this is its own workflow, the image build (deploy.yml) does not wait
+# for it, and without the two secrets it does nothing.
+#   SONAR_HOST_URL   the scanner's address
+#   SONAR_TOKEN      a token that can send scans for THIS repo's project and no other
+# Fleet sets both on the repo. The project key is built from the repository's GitHub id, so it
+# stays the same when the repo is renamed.
+#
+# Only main is scanned. The scanner keeps one result per project, so a scan of any other
+# branch would replace what the Security tab shows with code that is not on the trunk.
+#
+# TEST COVERAGE (v2). The scanner does not run tests: it reads a coverage report that a test
+# run left behind. So the tests run here first, with coverage, and the scan is told where the
+# reports are. v1 had no such step and every repo read 0.0% coverage whatever its tests did.
+# Best effort: a repo with no tests, or tests that fail here, is still scanned, without
+# coverage. The tests run WITHOUT the scanner's token (it is given to the scan step only).
+name: Code scan
+
+on:
+  push:
+    branches: ['main']
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fleet-code-scan
+  cancel-in-progress: true
+
+jobs:
+  code-scan:
+    name: code-scan
+    if: github.ref_name == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up
+        id: setup
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: |
+          if [ -n "$SONAR_TOKEN" ] && [ -n "$SONAR_HOST_URL" ]; then
+            echo "ready=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "FLEET_CODE_SCAN=skipped (SONAR_TOKEN or SONAR_HOST_URL is not set on this repo)"
+          fi
+
+      # Runs the repo's own tests with coverage, whichever of Go, Node and Python it uses, and
+      # collects the report paths for the scan. Every part is allowed to fail.
+      - name: Tests with coverage
+        id: coverage
+        if: steps.setup.outputs.ready == 'true'
+        continue-on-error: true
+        timeout-minutes: 15
+        run: |
+          set +e
+          # ---- Go: coverage.out ----
+          if [ -f go.mod ]; then
+            go test -coverprofile=coverage.out -covermode=atomic ./... || echo "FLEET_COVERAGE[go]=tests failed"
+          fi
+          # ---- Node: lcov.info, at the root and in each npm workspace ----
+          if [ -f package.json ]; then
+            if [ -f package-lock.json ]; then npm ci --no-audit --no-fund; else npm install --no-audit --no-fund; fi
+            runner=""
+            if grep -rqs '"vitest' package.json apps/*/package.json packages/*/package.json; then runner=vitest; fi
+            if [ -z "$runner" ] && grep -rqs '"jest' package.json apps/*/package.json packages/*/package.json; then runner=jest; fi
+            if [ "$runner" = vitest ]; then
+              # vitest needs its coverage provider, at vitest's own version
+              ver=$(node -p "require('vitest/package.json').version" 2>/dev/null)
+              [ -n "$ver" ] && npm install --no-save --no-audit --no-fund "@vitest/coverage-v8@$ver"
+              flags="--coverage --coverage.reporter=lcov"
+            elif [ "$runner" = jest ]; then
+              flags="--coverage --coverageReporters=lcov"
+            fi
+            if [ -n "$runner" ]; then
+              if node -e "process.exit(require('./package.json').workspaces ? 0 : 1)"; then
+                npm test --workspaces --if-present -- $flags || echo "FLEET_COVERAGE[node]=tests failed"
+              else
+                npm test -- $flags || echo "FLEET_COVERAGE[node]=tests failed"
+              fi
+            else
+              echo "FLEET_COVERAGE[node]=no vitest or jest found"
+            fi
+          fi
+          # ---- Python: coverage.xml ----
+          if [ -f pyproject.toml ] || [ -f requirements.txt ] || [ -f setup.py ]; then
+            if ls tests test_*.py */test_*.py >/dev/null 2>&1; then
+              python3 -m pip install --quiet pytest pytest-cov
+              [ -f requirements.txt ] && python3 -m pip install --quiet -r requirements.txt
+              python3 -m pytest -q --cov=. --cov-report=xml:coverage.xml || echo "FLEET_COVERAGE[python]=tests failed"
+            fi
+          fi
+          # ---- hand the reports to the scan ----
+          # An lcov file written inside a workspace names its files from that folder; the scan
+          # reads paths from the repo root, so each one is rewritten to start at the root.
+          lcov=""
+          for f in $(find . -name lcov.info -not -path '*/node_modules/*' | sed 's|^\./||'); do
+            dir=$(dirname "$(dirname "$f")")
+            if [ "$dir" != "." ]; then sed -i -E "s|^SF:([^/].*)$|SF:$dir/\1|" "$f"; fi
+            lcov="${lcov:+$lcov,}$f"
+          done
+          echo "lcov=$lcov" >> "$GITHUB_OUTPUT"
+          echo "FLEET_COVERAGE[reports]=go:$([ -f coverage.out ] && echo yes || echo no) python:$([ -f coverage.xml ] && echo yes || echo no) lcov:${lcov:-none}"
+
+      - name: Scan
+        if: steps.setup.outputs.ready == 'true'
+        uses: SonarSource/sonarqube-scan-action@v8.4.1
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        with:
+          args: >
+            -Dsonar.projectKey=devfab_${{ github.repository_id }}
+            -Dsonar.projectName=${{ github.repository }}
+            -Dsonar.scm.revision=${{ github.sha }}
+            -Dsonar.sources=.
+            -Dsonar.tests=.
+            -Dsonar.test.inclusions=**/*.test.ts,**/*.test.tsx,**/*.test.js,**/*.test.jsx,**/*.spec.ts,**/*.spec.tsx,**/*.spec.js,**/__tests__/**,**/test_*.py,**/*_test.py,**/tests/**/*.py,**/*_test.go
+            -Dsonar.exclusions=**/node_modules/**,**/dist/**,**/build/**,**/.next/**,**/vendor/**,**/*.min.js,**/coverage/**,**/*.test.ts,**/*.test.tsx,**/*.test.js,**/*.test.jsx,**/*.spec.ts,**/*.spec.tsx,**/*.spec.js,**/__tests__/**,**/test_*.py,**/*_test.py,**/tests/**/*.py,**/*_test.go
+            -Dsonar.go.coverage.reportPaths=coverage.out
+            -Dsonar.python.coverage.reportPaths=coverage.xml
+            -Dsonar.javascript.lcov.reportPaths=${{ steps.coverage.outputs.lcov || 'coverage/lcov.info' }}
+
+      - name: Sent
+        if: steps.setup.outputs.ready == 'true'
+        run: echo "FLEET_CODE_SCAN=sent ${{ github.sha }}"
