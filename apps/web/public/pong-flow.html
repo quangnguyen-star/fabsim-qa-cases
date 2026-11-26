@@ -8,6 +8,13 @@
   <body>
     <main>
       <h1>pong-flow-2</h1>
+      <p id="run" data-testid="run"></p>
     </main>
+    <script>
+      (function () {
+        var run = new URLSearchParams(window.location.search).get("run");
+        if (run) document.getElementById("run").textContent = "pong-flow-2 " + run;
+      })();
+    </script>
   </body>
 </html>

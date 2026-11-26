@@ -19,9 +19,9 @@
       "tags": ["pong-flow"],
       "steps": [
         {"kind": "action", "op": "navigate", "intent": "open the pong-flow page",
-         "url": "/pong-flow.html"},
-        {"kind": "assert", "op": "assert", "intent": "the page shows pong-flow-2",
-         "expected": {"kind": "text_present", "text": "pong-flow-2"}}
+         "url": "/pong-flow.html?run={{run_id}}"},
+        {"kind": "assert", "op": "assert", "intent": "the page shows its run-scoped line",
+         "expected": {"kind": "text_present", "text": "pong-flow-2 {{run_id}}"}}
       ]
     }
   ]
