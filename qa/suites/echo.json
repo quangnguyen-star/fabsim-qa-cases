@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.1.0",
+  "run_id": "echo",
+  "_about": "Suite for /echo.html. Relative URLs only; the assertion carries the run-scoped tag ({{run_id}}-e).",
+  "config": {
+    "base_url": "http://localhost:5000",
+    "parallelism": 2,
+    "video": "fail",
+    "default_timeout_ms": 15000
+  },
+  "namespace": {
+    "run_id": "echo",
+    "email": "qa+echo@qode.gg",
+    "tag": "QA RUN echo"
+  },
+  "scenarios": [
+    {
+      "name": "echo shows our own name",
+      "tags": ["echo", "own-e"],
+      "steps": [
+        {"kind": "action", "op": "navigate", "intent": "open the echo page with our name",
+         "url": "/echo.html?name={{run_id}}-e"},
+        {"kind": "assert", "op": "assert", "intent": "the heading echoes our name",
+         "expected": {"kind": "text_present", "text": "Echo {{run_id}}-e"}}
+      ]
+    }
+  ]
+}
