@@ -1,0 +1,28 @@
+{
+  "schema_version": "1.1.0",
+  "run_id": "pong-flow",
+  "_about": "Suite for /pong-flow.html. Relative URLs only.",
+  "config": {
+    "base_url": "http://localhost:5000",
+    "parallelism": 2,
+    "video": "fail",
+    "default_timeout_ms": 15000
+  },
+  "namespace": {
+    "run_id": "pong-flow",
+    "email": "qa+pong-flow@qode.gg",
+    "tag": "QA RUN pong-flow"
+  },
+  "scenarios": [
+    {
+      "name": "pong-flow page shows its text",
+      "tags": ["pong-flow"],
+      "steps": [
+        {"kind": "action", "op": "navigate", "intent": "open the pong-flow page",
+         "url": "/pong-flow.html"},
+        {"kind": "assert", "op": "assert", "intent": "the page shows pong-flow-2",
+         "expected": {"kind": "text_present", "text": "pong-flow-2"}}
+      ]
+    }
+  ]
+}
