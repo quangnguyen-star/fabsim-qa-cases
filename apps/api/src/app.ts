@@ -33,6 +33,10 @@ export function createApp() {
     res.json({ status: "ok" });
   });
 
+  app.get("/api/status", (_req, res) => {
+    res.json({ ok: true, maintenance: false, version: 2, message: null });
+  });
+
   // In production, serve the built web client from the same process.
   const clientDist = path.resolve(process.cwd(), "../web/dist");
   if (fs.existsSync(clientDist)) {

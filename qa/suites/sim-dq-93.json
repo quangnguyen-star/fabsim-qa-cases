@@ -1,0 +1,80 @@
+{
+  "schema_version": "1.1.0",
+  "run_id": "sim-dq-93",
+  "_about": "DQ-93 suite: GET /api/status reports the expected fields. Relative URLs only.",
+  "config": {
+    "base_url": "http://localhost:5000",
+    "parallelism": 2,
+    "video": "fail",
+    "default_timeout_ms": 15000
+  },
+  "namespace": {
+    "run_id": "sim-dq-93",
+    "email": "qa+sim-dq-93@qode.gg",
+    "tag": "QA RUN sim-dq-93"
+  },
+  "scenarios": [
+    {
+      "name": "api status reports expected fields",
+      "tags": [
+        "api",
+        "own-status"
+      ],
+      "steps": [
+        {
+          "kind": "action",
+          "op": "api",
+          "intent": "GET /api/status",
+          "method": "GET",
+          "api_path": "/api/status",
+          "capture": {
+            "ok": "$.ok",
+            "maintenance": "$.maintenance",
+            "version": "$.version",
+            "message": "$.message"
+          }
+        },
+        {
+          "kind": "assert",
+          "op": "assert",
+          "intent": "ok is true",
+          "expected": {
+            "kind": "capture_equals",
+            "capture_name": "ok",
+            "value": "true"
+          }
+        },
+        {
+          "kind": "assert",
+          "op": "assert",
+          "intent": "maintenance is false",
+          "expected": {
+            "kind": "capture_equals",
+            "capture_name": "maintenance",
+            "value": "false"
+          }
+        },
+        {
+          "kind": "assert",
+          "op": "assert",
+          "intent": "version is 2",
+          "expected": {
+            "kind": "capture_equals",
+            "capture_name": "version",
+            "value": "2"
+          }
+        },
+        {
+          "kind": "assert",
+          "op": "assert",
+          "intent": "message is null",
+          "expected": {
+            "kind": "capture_equals",
+            "capture_name": "message",
+            "value": "null"
+          }
+        }
+      ]
+    }
+  ]
+}
