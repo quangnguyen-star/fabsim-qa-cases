@@ -1,4 +1,4 @@
-import type { Health } from "@scaffold/shared";
+import type { Health, Version } from "@scaffold/shared";
 
 async function toJson<T>(res: Response): Promise<T> {
   if (!res.ok) throw new Error(`${res.status} ${await res.text()}`);
@@ -9,4 +9,5 @@ async function toJson<T>(res: Response): Promise<T> {
 // surfaces as a type error on both sides.
 export const api = {
   health: () => fetch("/api/health").then((r) => toJson<Health>(r)),
+  version: () => fetch("/api/version").then((r) => toJson<Version>(r)),
 };

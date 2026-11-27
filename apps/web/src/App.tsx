@@ -1,4 +1,5 @@
 import { Link, Route, Switch } from "wouter";
+import VersionFooter from "./components/VersionFooter";
 import HomePage from "./pages/HomePage";
 
 export default function App() {
@@ -16,6 +17,7 @@ export default function App() {
           <p className="text-gray-500">Not found.</p>
         </Route>
       </Switch>
+      <VersionFooter />
     </div>
   );
 }
