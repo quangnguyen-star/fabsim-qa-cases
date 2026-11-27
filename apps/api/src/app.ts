@@ -6,6 +6,8 @@ import express from "express";
 import rateLimit from "express-rate-limit";
 import helmet from "helmet";
 import pinoHttp from "pino-http";
+import type { Version } from "@scaffold/shared";
+import rootPackage from "../../../package.json";
 
 export function createApp() {
   const app = express();
@@ -35,6 +37,11 @@ export function createApp() {
 
   app.get("/api/status", (_req, res) => {
     res.json({ ok: true, maintenance: false, version: 2, message: null });
+  });
+
+  app.get("/api/version", (_req, res) => {
+    const body: Version = { version: process.env.APP_VERSION || rootPackage.version };
+    res.json(body);
   });
 
   // In production, serve the built web client from the same process.

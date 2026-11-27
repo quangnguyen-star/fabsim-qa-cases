@@ -1,0 +1,47 @@
+{
+  "schema_version": "1.1.0",
+  "run_id": "sim-dq-version",
+  "_about": "DQ-96 suite: GET /api/version returns the configured version. Relative URLs only.",
+  "config": {
+    "base_url": "http://localhost:5000",
+    "parallelism": 2,
+    "video": "fail",
+    "default_timeout_ms": 15000
+  },
+  "namespace": {
+    "run_id": "sim-dq-version",
+    "email": "qa+sim-dq-version@qode.gg",
+    "tag": "QA RUN sim-dq-version"
+  },
+  "scenarios": [
+    {
+      "name": "api version reports the configured version",
+      "tags": [
+        "api",
+        "own-version"
+      ],
+      "steps": [
+        {
+          "kind": "action",
+          "op": "api",
+          "intent": "GET /api/version",
+          "method": "GET",
+          "api_path": "/api/version",
+          "capture": {
+            "version": "$.version"
+          }
+        },
+        {
+          "kind": "assert",
+          "op": "assert",
+          "intent": "version is 0.0.0",
+          "expected": {
+            "kind": "capture_equals",
+            "capture_name": "version",
+            "value": "0.0.0"
+          }
+        }
+      ]
+    }
+  ]
+}
